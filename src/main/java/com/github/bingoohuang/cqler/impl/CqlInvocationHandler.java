@@ -2,6 +2,7 @@ package com.github.bingoohuang.cqler.impl;
 
 import com.datastax.driver.core.*;
 import com.github.bingoohuang.cqler.annotations.Cql;
+import com.github.bingoohuang.cqler.annotations.Cqler;
 import com.github.bingoohuang.cqler.domain.Keyspace;
 import com.google.common.collect.Lists;
 
@@ -11,10 +12,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class CqlInvocationHandler implements InvocationHandler {
-    private final Class<?> cqlerClass;
 
-    public CqlInvocationHandler(Class<?> cqlerClass) {
-        this.cqlerClass = cqlerClass;
+    public CqlInvocationHandler() {
     }
 
     static Cluster cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
@@ -32,15 +31,19 @@ public class CqlInvocationHandler implements InvocationHandler {
             return null;
         }
 
+        Class<?> hostClass = method.getDeclaringClass();
+        Cqler cqlerAnn = hostClass.getAnnotation(Cqler.class);
+        String keyspace = cqlerAnn.keyspace();
+
         if (isQuery(cql)) {
-            Session session = cluster.connect("firstcqler");
+            Session session = cluster.connect(keyspace);
             ResultSet resultSet = session.execute(cql);
             List<Keyspace> keyspaces = Lists.newArrayList();
             for (Row row : resultSet) {
                 String keyspaceName = row.getString(0);
-                Keyspace keyspace = new Keyspace();
-                keyspace.setKeyspaceName(keyspaceName);
-                keyspaces.add(keyspace);
+                Keyspace keyspaceBean = new Keyspace();
+                keyspaceBean.setKeyspaceName(keyspaceName);
+                keyspaces.add(keyspaceBean);
             }
             session.close();
 
@@ -54,7 +57,7 @@ public class CqlInvocationHandler implements InvocationHandler {
 
         }
 
-        Session session = cluster.connect("firstcqler");
+        Session session = cluster.connect(keyspace);
         session.execute(cql);
         session.close();
 

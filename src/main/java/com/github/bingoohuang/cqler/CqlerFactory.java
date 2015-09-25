@@ -8,6 +8,6 @@ public class CqlerFactory {
     public static <T> T getCqler(Class<T> cqlerClass) {
         return (T) Proxy.newProxyInstance(cqlerClass.getClassLoader(),
                 new Class[]{cqlerClass},
-                new CqlInvocationHandler(cqlerClass));
+                new CqlInvocationHandler());
     }
 }

@@ -9,4 +9,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cqler {
+    String keyspace() default "";
+
+    String cluster() default "DEFAULT";
 }
