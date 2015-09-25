@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
+// http://www.planetcassandra.org/getting-started-with-apache-cassandra-and-java/
 public class CqlInvocationHandler implements InvocationHandler {
 
     public CqlInvocationHandler() {
