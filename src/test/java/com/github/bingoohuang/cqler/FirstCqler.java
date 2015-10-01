@@ -6,6 +6,7 @@ import com.github.bingoohuang.cqler.domain.Keyspace;
 import com.github.bingoohuang.cqler.domain.TeamMember;
 
 import java.util.List;
+import java.util.Map;
 
 @Cqler(keyspace = "firstcqler", cluster = "cluster1")
 public interface FirstCqler {
@@ -34,11 +35,11 @@ public interface FirstCqler {
             " VALUES (##, ##, ##)")
     void createTeam(String teamName, String manager, String location);
 
-    @Cql("INSERT INTO teammember_by_team (teamname, membername, nationality, position)" +
-            " VALUES (#1#, #2#, #3#, #4#);")
-    void addTeamMemeber(String teamName, String memberName, String nationality, String position);
+    @Cql("INSERT INTO teammember_by_team (membername, teamname, nationality, position)" +
+            " VALUES (#2#, #1#, #3#, #4#)")
+    void addTeamMember(String teamName, String memberName, String nationality, String position);
 
-    @Cql("SELECT teamname, membername, location, manager, nationality, position" +
+    @Cql("SELECT teamname, location, membername, manager, nationality, position" +
             " FROM teammember_by_team" +
             " WHERE teamname = ## and membername = ##")
     TeamMember findTeamMember(String teamName, String memberName);
@@ -54,4 +55,22 @@ public interface FirstCqler {
 
     @Cql("select * from system.schema_keyspaces where keyspace_name = ##")
     Keyspace getKeyspace(String keyspaceName);
+
+
+    @Cql("select teamname from teammember_by_team")
+    List<String> findTeamName();
+
+    @Cql("select membername from teammember_by_team")
+    List findMemberName();
+
+    @Cql("SELECT teamname, location, membername, manager, nationality, position" +
+            " FROM teammember_by_team" +
+            " WHERE teamname = ## and membername = ##")
+    Map findTeamMemberMap(String s, String kvyat);
+
+    @Cql("select count(*) from teammember_by_team")
+    int findMemCount();
+
+    @Cql("select membername from teammember_by_team where teamname = ## and membername = ##")
+    String findMemberNameStr(String teamName, String kvyat);
 }

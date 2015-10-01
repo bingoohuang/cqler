@@ -14,6 +14,9 @@ public class TeamMember {
         setPosition(builder.position);
     }
 
+    public TeamMember() {
+    }
+
     public static Builder newBuilder(String teamName, String memberName) {
         return new Builder(teamName, memberName);
     }
