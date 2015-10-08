@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 public class FirstCqlerTest {
     static FirstCqler firstCqler;
@@ -78,11 +79,17 @@ public class FirstCqlerTest {
         firstCqler.addTeamMember("Red Bull", "Ricciardo", "Australian", "driver");
         firstCqler.addTeamMember("Red Bull", "Kvyat", "Russian", "driver");
 
-        Map teamMember = firstCqler.findTeamMemberMap("Red Bull", "Kvyat");
+        Map<String, String> teamMember = firstCqler.findTeamMemberMap("Red Bull", "Kvyat");
 
-        for (Object key : teamMember.keySet()) {
-            System.out.println("key:" + key.toString() + "value:" + teamMember.get(key));
-        }
+        assertThat(teamMember.size()).isEqualTo(6);
+        assertThat(teamMember)
+                .contains(entry("position", "driver"))
+                .contains(entry("nationality", "Russian"))
+                .contains(entry("manager", "Christian Horner"))
+                .contains(entry("location", "<unknown>"))
+                .contains(entry("teamname", "Red Bull"))
+                .contains(entry("membername", "Kvyat"))
+        ;
     }
 
     @Test
@@ -92,9 +99,8 @@ public class FirstCqlerTest {
         firstCqler.addTeamMember("Red Bull", "Kvyat", "Russian", "driver");
 
         List<Keyspace> keyspaces = firstCqler.showKeyspaces();
-        for (Keyspace keyspace : keyspaces) {
-            System.out.println(keyspace.getKeyspaceName());
-        }
+        assertThat(keyspaces.size()).isGreaterThan(5);
+        assertThat(keyspaces).contains(new Keyspace("firstcqler"));
     }
 
     @Test

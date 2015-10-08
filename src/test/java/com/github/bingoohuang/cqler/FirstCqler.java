@@ -50,27 +50,27 @@ public interface FirstCqler {
     List<TeamMember> findAllTeamMembers(String teamName);
 
 
-    @Cql("select * from system.schema_keyspaces")
+    @Cql("SELECT * FROM system.schema_keyspaces")
     List<Keyspace> showKeyspaces();
 
-    @Cql("select * from system.schema_keyspaces where keyspace_name = ##")
+    @Cql("SELECT * FROM system.schema_keyspaces WHERE keyspace_name = ##")
     Keyspace getKeyspace(String keyspaceName);
 
 
-    @Cql("select teamname from teammember_by_team")
+    @Cql("SELECT teamname FROM teammember_by_team")
     List<String> findTeamName();
 
-    @Cql("select membername from teammember_by_team")
+    @Cql("SELECT membername FROM teammember_by_team")
     List findMemberName();
 
     @Cql("SELECT teamname, location, membername, manager, nationality, position" +
             " FROM teammember_by_team" +
             " WHERE teamname = ## and membername = ##")
-    Map findTeamMemberMap(String s, String kvyat);
+    Map<String, String> findTeamMemberMap(String s, String kvyat);
 
-    @Cql("select count(*) from teammember_by_team")
+    @Cql("SELECT count(*) FROM teammember_by_team")
     int findMemCount();
 
-    @Cql("select membername from teammember_by_team where teamname = ## and membername = ##")
+    @Cql("SELECT membername FROM teammember_by_team WHERE teamname = ## AND membername = ##")
     String findMemberNameStr(String teamName, String kvyat);
 }

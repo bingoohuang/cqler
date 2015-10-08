@@ -1,10 +1,10 @@
 package com.github.bingoohuang.cqler.impl;
 
 import com.datastax.driver.core.*;
+import com.github.bingoohuang.cqler.ClusterFactory;
 import com.github.bingoohuang.cqler.annotations.Cql;
 import com.github.bingoohuang.cqler.annotations.Cqler;
 import com.github.bingoohuang.cqler.impl.CqlParser.CqlParserResult;
-import com.github.bingoohuang.cqler.util.ReflectionUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -44,28 +44,32 @@ public class CqlInvocationHandler implements InvocationHandler {
         Cql cqlAnn = method.getAnnotation(Cql.class);
         String cql = cqlAnn.value();
 
-        if (isDdlWithKeyspace(cql)) {
+        if (isKeyspaceDdl(cql)) {
             execCqlDirectly(cluster, cql);
             return null;
         }
 
-        if (isDml(cql)) {
-            return executeQuery(method, args, keyspace, cluster, cql);
+        if (isQuery(cql)) {
+            return executeQuery(method, cluster, keyspace, cql, args);
         }
 
-        return executeDdl(args, keyspace, cluster, cql);
+        return executeOthers(cluster, keyspace, cql, args);
     }
 
-    private Object executeDdl(Object[] args, String keyspace, Cluster cluster, String cql) {
+    private Object executeOthers(
+            Cluster cluster, String keyspace, String cql, Object[] args) {
         try (Session session = cluster.connect(keyspace)) {
             CqlParserResult parserResult = new CqlParser(cql, args).parseCql();
             BoundStatement boundStatement = bindParams(session, parserResult);
             session.execute(boundStatement);
         }
+
         return null;
     }
 
-    private Object executeQuery(Method method, Object[] args, String keyspace, Cluster cluster, String cql) throws Exception {
+    private Object executeQuery(
+            Method method, Cluster cluster, String keyspace, String cql, Object[] args
+    ) throws Exception {
         List<Map> result;
 
         try (Session session = cluster.connect(keyspace)) {
@@ -77,6 +81,7 @@ public class CqlInvocationHandler implements InvocationHandler {
 
         if (Collection.class.isAssignableFrom(method.getReturnType()))
             return parseCollectionResult(method, result);
+
         if (result.isEmpty()) return null;
         if (method.getReturnType() == Map.class)
             return parseMapResult(method, result);
@@ -136,13 +141,13 @@ public class CqlInvocationHandler implements InvocationHandler {
         }
 
         ParameterizedType pt = (ParameterizedType) method.getGenericReturnType();
-        Type[] ownerType = pt.getActualTypeArguments();
-        Class<?> aClass = ReflectionUtils.getClass(ownerType[0]);
+        Type[] actualTypeArguments = pt.getActualTypeArguments();
+        Class<?> actualArgClass = (Class<?>) actualTypeArguments[0];
 
-        if (parseBasicDataTypeResult(result, listResult, aClass))
+        if (parseBasicDataTypeResult(result, listResult, actualArgClass))
             return listResult;
 
-        return parseCommonBeanResult(result, listResult, aClass);
+        return parseCommonBeanResult(result, listResult, actualArgClass);
 
     }
 
@@ -175,7 +180,7 @@ public class CqlInvocationHandler implements InvocationHandler {
         List<Map> result = Lists.newArrayList();
         for (Row row : resultSet) {
             Map map = Maps.newHashMap();
-            for (int i = 0; i < resultSet.getColumnDefinitions().size(); i++) {
+            for (int i = 0, ii = resultSet.getColumnDefinitions().size(); i < ii; i++) {
                 map.put(resultSet.getColumnDefinitions()
                         .getName(i).toLowerCase()
                         .replaceAll("_", ""), row.getObject(i));
@@ -204,12 +209,12 @@ public class CqlInvocationHandler implements InvocationHandler {
         }
     }
 
-    private boolean isDml(String cql) {
+    private boolean isQuery(String cql) {
         String lowerCaseCql = cql.toLowerCase();
         return lowerCaseCql.startsWith("select");
     }
 
-    private boolean isDdlWithKeyspace(String cql) {
+    private boolean isKeyspaceDdl(String cql) {
         String lowerCaseCql = cql.toLowerCase();
         return lowerCaseCql.startsWith("create keyspace")
                 || lowerCaseCql.startsWith("drop keyspace")
