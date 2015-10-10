@@ -57,7 +57,7 @@ public class CqlInvocationHandler implements InvocationHandler {
     }
 
     private Object executeOthers(
-            Cluster cluster, String keyspace, String cql, Object[] args) {
+            Cluster cluster, String keyspace, String cql, Object[] args) throws Exception {
         try (Session session = cluster.connect(keyspace)) {
             CqlParserResult parserResult = new CqlParser(cql, args).parseCql();
             BoundStatement boundStatement = bindParams(session, parserResult);

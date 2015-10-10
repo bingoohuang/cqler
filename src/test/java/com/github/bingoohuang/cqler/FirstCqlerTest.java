@@ -111,7 +111,7 @@ public class FirstCqlerTest {
 
         int memCount = firstCqler.findMemCount();
 
-        assertThat(memCount).isEqualTo(2);
+        assertThat(memCount).isEqualTo(3);
     }
 
     @Test
@@ -123,6 +123,25 @@ public class FirstCqlerTest {
         String str = firstCqler.findMemberNameStr("Red Bull","Kvyat");
 
         assertThat(str).isEqualTo("Kvyat");
+    }
+
+
+    @Test
+    public void testInsertObject(){
+        firstCqler.createTeam("Red Bull", "Christian Horner", "<unknown>");
+        firstCqler.addTeamMember("Red Bull", "Ricciardo", "Australian", "driver");
+        firstCqler.addTeamMember("Red Bull", "Kvyat", "Russian", "driver");
+        TeamMember teamMember = TeamMember.newBuilder("test","123")
+                .withLocation("南京")
+                .withManager("不知道")
+                .withNationality("..")
+                .withPosition("1232323")
+                .build();
+        firstCqler.addTeamMemberByObject(teamMember);
+
+        TeamMember test = firstCqler.findTeamMember("test", "123");
+
+        assertThat("不知道").isEqualTo(test.getManager());
     }
 
 }

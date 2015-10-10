@@ -1,5 +1,8 @@
 package com.github.bingoohuang.cqler.impl;
 
+import org.apache.commons.beanutils.BeanUtils;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -7,6 +10,8 @@ import java.util.regex.Pattern;
 
 public class CqlParser {
     static Pattern seqParamPlaceholder = Pattern.compile("#(\\d+?)#");
+
+    static Pattern attrParamPlaceholder = Pattern.compile("#(\\S+?)#");
 
     static class CqlParserResult {
         public final Object[] bindParams;
@@ -26,8 +31,11 @@ public class CqlParser {
         this.args = args;
     }
 
-    public CqlParserResult parseCql() {
-        return cql.contains("##") ? parseAutoParams() : parseSeqParams();
+    public CqlParserResult parseCql() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        if (cql.contains("##")) return parseAutoParams();
+        if (seqParamPlaceholder.matcher(cql).find()) return parseSeqParams();
+        return parseAttrParams();
+
     }
 
     private CqlParserResult parseSeqParams() {
@@ -51,11 +59,28 @@ public class CqlParser {
 
     }
 
+    private CqlParserResult parseAttrParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Matcher matcher = attrParamPlaceholder.matcher(cql);
+        List<Object> attrSeqs = new ArrayList<Object>();
+
+        for (int pos = 0; matcher.find(pos); pos = matcher.end()) {
+            String seqNum = matcher.group(1);
+            attrSeqs.add(BeanUtils.getProperty(args[0], seqNum));
+        }
+        String execSql = matcher.replaceAll("?");
+        Object[] objects = new Object[attrSeqs.size()];
+
+        for (int i = 0; i < attrSeqs.size(); i++) {
+            objects[i] = attrSeqs.get(i);
+        }
+        return new CqlParserResult(execSql, objects);
+
+    }
+
     private CqlParserResult parseAutoParams() {
         String execSql = cql.replaceAll("##", "?");
         return new CqlParserResult(execSql, args);
     }
-
 
 }
 

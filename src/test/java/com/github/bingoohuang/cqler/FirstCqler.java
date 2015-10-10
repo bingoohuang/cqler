@@ -73,4 +73,8 @@ public interface FirstCqler {
 
     @Cql("SELECT membername FROM teammember_by_team WHERE teamname = ## AND membername = ##")
     String findMemberNameStr(String teamName, String kvyat);
+
+    @Cql("INSERT INTO teammember_by_team (membername, teamname,location,manager, nationality, position) " +
+            "VALUES(#memberName#,#teamName#,#location#,#manager#,#nationality#,#position#)")
+    void addTeamMemberByObject(TeamMember teamMember);
 }
