@@ -37,7 +37,7 @@ public class ClusterFactory {
                 .setMaxConnectionsPerHost(HostDistance.REMOTE, 4);
 
         final Properties properties = loadClasspathPropertiesFile(
-                "cql/" + clusterName + ".properties");
+                "cqler/" + clusterName + ".properties");
 
         String contactPoints = properties.getProperty("contactPoints", "127.0.0.1");
         Splitter splitter = Splitter.onPattern("\\s+").omitEmptyStrings().trimResults();
@@ -59,6 +59,9 @@ public class ClusterFactory {
         try {
             ClassLoader classLoader = ClusterFactory.class.getClassLoader();
             InputStream is = classLoader.getResourceAsStream(propertiesFile);
+            if (is == null) {
+                throw new RuntimeException("property file " + propertiesFile + " does not exit");
+            }
             properties.load(is);
         } catch (Exception e) {
             throw Throwables.propagate(e);

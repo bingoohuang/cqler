@@ -8,6 +8,32 @@ import com.github.bingoohuang.cqler.domain.TeamMember;
 import java.util.List;
 import java.util.Map;
 
+/*
+http://docs.datastax.com/en/developer/java-driver/2.0/java-driver/reference/javaClass2Cql3Datatypes_r.html
+
+Java classes to CQL3 data types
+CQL3 data type	Java type
+ascii	java.lang.String
+bigint	long
+blob	java.nio.ByteBuffer
+boolean	boolean
+counter	long
+decimal	java.math.BigDecimal
+double	double
+float	float
+inet	java.net.InetAddress
+int	int
+list	java.util.List<T>
+map	java.util.Map<K, V>
+set	java.util.Set<T>
+text	java.lang.String
+timestamp	java.util.Date
+timeuuid	java.util.UUID
+uuid	java.util.UUID
+varchar	java.lang.String
+varint	java.math.BigInteger
+ */
+
 @Cqler(keyspace = "firstcqler", cluster = "cluster1")
 public interface FirstCqler {
     // http://wiki.apache.org/cassandra/GettingStarted

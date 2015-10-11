@@ -1,6 +1,7 @@
 package com.github.bingoohuang.cqler.impl;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class CqlParser {
 
         for (int pos = 0; matcher.find(pos); pos = matcher.end()) {
             String seqNum = matcher.group(1);
-            attrSeqs.add(BeanUtils.getProperty(args[0], seqNum));
+            attrSeqs.add(PropertyUtils.getProperty(args[0], seqNum));
         }
         String execSql = matcher.replaceAll("?");
         Object[] objects = new Object[attrSeqs.size()];
