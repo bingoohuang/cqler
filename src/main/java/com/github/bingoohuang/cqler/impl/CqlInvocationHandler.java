@@ -5,6 +5,11 @@ import com.github.bingoohuang.cqler.ClusterFactory;
 import com.github.bingoohuang.cqler.annotations.Cql;
 import com.github.bingoohuang.cqler.annotations.Cqler;
 import com.github.bingoohuang.cqler.impl.CqlParser.CqlParserResult;
+import com.google.common.base.Throwables;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -18,6 +23,8 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 // http://www.planetcassandra.org/getting-started-with-apache-cassandra-and-java/
 public class CqlInvocationHandler implements InvocationHandler {
@@ -192,10 +199,27 @@ public class CqlInvocationHandler implements InvocationHandler {
 
 
     public static BoundStatement bindParams(Session session, CqlParserResult cqlParserResult) {
-        PreparedStatement ps = session.prepare(cqlParserResult.execSql);
+        PreparedStatement ps = prepareCql(session, cqlParserResult);
         BoundStatement boundStatement = new BoundStatement(ps);
         boundStatement.bind(cqlParserResult.bindParams);
         return boundStatement;
+    }
+
+    static Cache<String, PreparedStatement> preparedCache
+            = CacheBuilder.newBuilder().build();
+
+    private static PreparedStatement prepareCql(final Session session,
+                                                final CqlParserResult cqlParserResult) {
+        try {
+            return preparedCache.get(cqlParserResult.execSql, new Callable<PreparedStatement>() {
+                @Override
+                public PreparedStatement call() throws Exception {
+                    return session.prepare(cqlParserResult.execSql);
+                }
+            });
+        } catch (ExecutionException e) {
+            throw Throwables.propagate(e.getCause());
+        }
     }
 
     private void map2Bean(Map map, Object obj) throws Exception {
