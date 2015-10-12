@@ -120,8 +120,8 @@
             <version>18.0</version>
         </dependency>
         <dependency>
-            <groupId>slf4j-log4j12</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>slf4j-api</groupId>
+            <artifactId>slf4j-api</artifactId>
             <version>1.6.2</version>
         </dependency>
     </dependencies>
