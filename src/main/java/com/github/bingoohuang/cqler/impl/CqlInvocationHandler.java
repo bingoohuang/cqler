@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
 
 // http://www.planetcassandra.org/getting-started-with-apache-cassandra-and-java/
 public class CqlInvocationHandler implements InvocationHandler {
-    static final Logger logger = LoggerFactory.getLogger(CqlInvocationHandler.class);
+    Logger logger = LoggerFactory.getLogger(CqlInvocationHandler.class);
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args
@@ -63,14 +63,15 @@ public class CqlInvocationHandler implements InvocationHandler {
     }
 
     private Object executeOthers(
-            Cluster cluster, String keyspace, String cql, Object[] args) throws Exception {
+            Cluster cluster, String keyspace, String cql, Object[] args
+    ) throws Exception {
         try (Session session = cluster.connect(keyspace)) {
             CqlParserResult parserResult = new CqlParser(cql, args).parseCql();
             BoundStatement boundStatement = bindParams(session, parserResult);
             session.execute(boundStatement);
-            logger.debug("execute success.");
         } catch (Exception e) {
-            logger.debug("execute failed : {}", e.getMessage());
+            logger.error("execute {} failed", cql, e);
+            throw Throwables.propagate(e);
         }
 
         return null;
@@ -85,7 +86,6 @@ public class CqlInvocationHandler implements InvocationHandler {
             CqlParserResult parserResult = new CqlParser(cql, args).parseCql();
             BoundStatement boundStatement = bindParams(session, parserResult);
             ResultSet resultSet = session.execute(boundStatement);
-            logger.debug("execute success.");
             result = getResultMaps(resultSet);
         }
 
@@ -109,7 +109,6 @@ public class CqlInvocationHandler implements InvocationHandler {
         try (Session session = cluster.connect()) {
             logger.debug("execute cql : {}", cql);
             session.execute(cql);
-            logger.debug("execute success.");
         }
     }
 
@@ -127,6 +126,7 @@ public class CqlInvocationHandler implements InvocationHandler {
         if (returnType == float.class) return Float.parseFloat(o.toString());
         if (returnType == boolean.class)
             return Boolean.parseBoolean(o.toString());
+
         return o;
     }
 
@@ -137,7 +137,8 @@ public class CqlInvocationHandler implements InvocationHandler {
         return null;
     }
 
-    private Object parseCollectionResult(Method method, List<Map> result) throws Exception {
+    private Object parseCollectionResult(
+            Method method, List<Map> result) throws Exception {
         if (method.getReturnType() == List.class)
             return getListResult(method, result);
         return result;
@@ -163,7 +164,8 @@ public class CqlInvocationHandler implements InvocationHandler {
 
     }
 
-    private Object parseCommonBeanResult(List<Map> result, List listResult, Class<?> aClass) throws Exception {
+    private Object parseCommonBeanResult(
+            List<Map> result, List listResult, Class<?> aClass) throws Exception {
         for (Map map : result) {
             Object obj = aClass.newInstance();
             map2Bean(map, obj);
@@ -172,7 +174,8 @@ public class CqlInvocationHandler implements InvocationHandler {
         return listResult;
     }
 
-    private boolean parseBasicDataTypeResult(List<Map> result, List listResult, Class<?> aClass) {
+    private boolean parseBasicDataTypeResult(
+            List<Map> result, List listResult, Class<?> aClass) {
         if (isBasicDataTypes(aClass)) {
             parseNoParadigmResult(result, listResult);
             return true;
@@ -192,21 +195,25 @@ public class CqlInvocationHandler implements InvocationHandler {
         List<Map> result = Lists.newArrayList();
         for (Row row : resultSet) {
             Map map = Maps.newHashMap();
-            for (int i = 0, ii = resultSet.getColumnDefinitions().size(); i < ii; i++) {
-                map.put(resultSet.getColumnDefinitions()
-                        .getName(i).toLowerCase()
-                        .replaceAll("_", ""), row.getObject(i));
-            }
             result.add(map);
+
+            for (int i = 0, ii = resultSet.getColumnDefinitions().size(); i < ii; i++) {
+                String key = resultSet.getColumnDefinitions()
+                        .getName(i).toLowerCase()
+                        .replaceAll("_", "");
+                map.put(key, row.getObject(i));
+            }
         }
         return result;
     }
 
 
-    public static BoundStatement bindParams(Session session, CqlParserResult cqlParserResult) {
+    public BoundStatement bindParams(
+            Session session, CqlParserResult cqlParserResult) {
         PreparedStatement ps = prepareCql(session, cqlParserResult);
         BoundStatement boundStatement = new BoundStatement(ps);
-        logger.debug("execute cql : {};params: {}", cqlParserResult.execSql, cqlParserResult.bindParams);
+        logger.debug("execute cql {} with params: {}",
+                cqlParserResult.execSql, cqlParserResult.bindParams);
         boundStatement.bind(cqlParserResult.bindParams);
         return boundStatement;
     }
@@ -214,8 +221,9 @@ public class CqlInvocationHandler implements InvocationHandler {
     static Cache<String, PreparedStatement> preparedCache
             = CacheBuilder.newBuilder().build();
 
-    private static PreparedStatement prepareCql(final Session session,
-                                                final CqlParserResult cqlParserResult) {
+    private static PreparedStatement prepareCql(
+            final Session session,
+            final CqlParserResult cqlParserResult) {
         try {
             return preparedCache.get(cqlParserResult.execSql, new Callable<PreparedStatement>() {
                 @Override

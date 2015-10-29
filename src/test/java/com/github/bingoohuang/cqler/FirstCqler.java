@@ -3,6 +3,7 @@ package com.github.bingoohuang.cqler;
 import com.github.bingoohuang.cqler.annotations.Cql;
 import com.github.bingoohuang.cqler.annotations.Cqler;
 import com.github.bingoohuang.cqler.domain.Keyspace;
+import com.github.bingoohuang.cqler.domain.ProcessConfig;
 import com.github.bingoohuang.cqler.domain.TeamMember;
 
 import java.util.List;
@@ -55,7 +56,8 @@ public interface FirstCqler {
             " position text," +
             " PRIMARY KEY ((teamname), membername)" +
             ")")
-    void createTable();
+    void createTableTeammemberByTeam();
+
 
     @Cql("INSERT INTO teammember_by_team (teamname, manager, location)" +
             " VALUES (##, ##, ##)")
@@ -100,7 +102,8 @@ public interface FirstCqler {
     @Cql("SELECT membername FROM teammember_by_team WHERE teamname = ## AND membername = ##")
     String findMemberNameStr(String teamName, String kvyat);
 
-    @Cql("INSERT INTO teammember_by_team (membername, teamname,location,manager, nationality, position) " +
-            "VALUES(#memberName#,,#teamName#,#location#,#manager#,#nationality#,#position#)")
+    @Cql("INSERT INTO teammember_by_team(membername, teamname, location, manager, nationality, position) " +
+            "VALUES(#memberName#, #teamName#, #location#, #manager#, #nationality#, #position#)")
     void addTeamMemberByObject(TeamMember teamMember);
+
 }

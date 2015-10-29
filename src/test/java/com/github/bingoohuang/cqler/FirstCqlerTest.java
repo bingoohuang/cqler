@@ -19,7 +19,7 @@ public class FirstCqlerTest {
         firstCqler = CqlerFactory.getCqler(FirstCqler.class);
         firstCqler.dropKeyspace();
         firstCqler.createKeyspace();
-        firstCqler.createTable();
+        firstCqler.createTableTeammemberByTeam();
     }
 
     @Test
