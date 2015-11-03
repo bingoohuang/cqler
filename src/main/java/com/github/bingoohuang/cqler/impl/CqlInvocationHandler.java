@@ -68,7 +68,8 @@ public class CqlInvocationHandler implements InvocationHandler {
         try (Session session = cluster.connect(keyspace)) {
             CqlParserResult parserResult = new CqlParser(cql, args).parseCql();
             BoundStatement boundStatement = bindParams(session, parserResult);
-            session.execute(boundStatement);
+            ResultSet resultSet = session.execute(boundStatement);
+
         } catch (Exception e) {
             logger.error("execute {} failed", cql, e);
             throw Throwables.propagate(e);

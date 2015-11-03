@@ -20,4 +20,7 @@ public interface CollectionCqler {
 
     @Cql("SELECT processName, args FROM process_config")
     List<ProcessConfig> queryProcessConfig();
+
+    @Cql("SELECT processName FROM process_config")
+    List<String> queryProcesses();
 }

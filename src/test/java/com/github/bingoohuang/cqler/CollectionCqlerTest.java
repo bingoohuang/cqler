@@ -31,5 +31,8 @@ public class CollectionCqlerTest {
         collectionCqler.insertProcessConfig(processConfig);
         List<ProcessConfig> processConfigs = collectionCqler.queryProcessConfig();
         assertThat(processConfigs).hasSize(1).contains(processConfig);
+
+        List<String> processes = collectionCqler.queryProcesses();
+        assertThat(processes).hasSize(1).contains("Yoga-Mobile");
     }
 }
