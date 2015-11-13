@@ -20,7 +20,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -49,6 +51,7 @@ public class CqlInvocationHandler implements InvocationHandler {
 
         Cql cqlAnn = method.getAnnotation(Cql.class);
         String cql = cqlAnn.value();
+
 
         if (isKeyspaceDdl(cql)) {
             execCqlDirectly(cluster, cql);
@@ -113,20 +116,36 @@ public class CqlInvocationHandler implements InvocationHandler {
         }
     }
 
-    private Object parseBaseDataTypeResult(Method method, Map map) {
+    private Object parseBaseDataTypeResult(Method method, Map map) throws ParseException {
         Class<?> returnType = method.getReturnType();
         Object o = new Object();
         for (Object key : map.keySet()) {
             o = map.get(key);
         }
-        if (returnType == int.class) return Integer.parseInt(o.toString());
-        if (returnType == byte.class) return Byte.parseByte(o.toString());
-        if (returnType == short.class) return Short.parseShort(o.toString());
-        if (returnType == long.class) return Long.parseLong(o.toString());
-        if (returnType == double.class) return Double.parseDouble(o.toString());
-        if (returnType == float.class) return Float.parseFloat(o.toString());
+        if (returnType == int.class)
+            return o == null ? null : Integer.parseInt(o.toString());
+        if (returnType == byte.class)
+            return o == null ? null : Byte.parseByte(o.toString());
+        if (returnType == short.class)
+            return o == null ? null : Short.parseShort(o.toString());
+        if (returnType == long.class)
+            return o == null ? null : Long.parseLong(o.toString());
+        if (returnType == double.class)
+            return o == null ? null : Double.parseDouble(o.toString());
+        if (returnType == float.class)
+            return o == null ? null : Float.parseFloat(o.toString());
         if (returnType == boolean.class)
-            return Boolean.parseBoolean(o.toString());
+            return o == null ? null : Boolean.parseBoolean(o.toString());
+        if (returnType == Long.class) {
+            return Long.valueOf(o.toString());
+        }
+        if (returnType == Date.class) {
+//            Calendar c = Calendar.getInstance();
+//            c.setTimeInMillis(Long.parseLong(o.toString()));
+            Date date = (Date) o;
+
+            return date;
+        }
 
         return o;
     }
@@ -243,6 +262,8 @@ public class CqlInvocationHandler implements InvocationHandler {
         for (PropertyDescriptor property : propertyDescriptors) {
             Method setter = property.getWriteMethod();
             if (setter != null) {
+                String propertyName = property.getName().toLowerCase();
+                if (map.get(propertyName) == null) continue;
                 setter.invoke(obj, map.get(property.getName().toLowerCase()));
             }
         }
@@ -265,7 +286,8 @@ public class CqlInvocationHandler implements InvocationHandler {
                 clazz == short.class || clazz == byte.class ||
                 clazz == long.class || clazz == double.class ||
                 clazz == float.class || clazz == boolean.class
-                || clazz == String.class;
+                || clazz == String.class || clazz == Date.class
+                || clazz == Long.class;
     }
 
 }

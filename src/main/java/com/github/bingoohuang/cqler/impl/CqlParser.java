@@ -1,6 +1,5 @@
 package com.github.bingoohuang.cqler.impl;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.lang.reflect.InvocationTargetException;
