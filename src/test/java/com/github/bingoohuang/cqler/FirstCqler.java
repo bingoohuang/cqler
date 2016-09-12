@@ -78,10 +78,10 @@ public interface FirstCqler {
     List<TeamMember> findAllTeamMembers(String teamName);
 
 
-    @Cql("SELECT * FROM system.schema_keyspaces")
+    @Cql("SELECT * FROM system_schema.keyspaces")
     List<Keyspace> showKeyspaces();
 
-    @Cql("SELECT * FROM system.schema_keyspaces WHERE keyspace_name = ##")
+    @Cql("SELECT * FROM system_schema.keyspaces WHERE keyspace_name = ##")
     Keyspace getKeyspace(String keyspaceName);
 
 
