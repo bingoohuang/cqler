@@ -37,9 +37,9 @@ public class CqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
 
     /**
      * This property lets you set the base package for your mapper interface files.
-     * <p/>
+     * <p>
      * You can set more than one package by using a semicolon or comma as a separator.
-     * <p/>
+     * </p>
      * Mappers will be searched for recursively starting in the specified package(s).
      *
      * @param basePackage base package name
@@ -50,7 +50,7 @@ public class CqlerScannerConfigurer implements BeanDefinitionRegistryPostProcess
 
 
     /**
-     * @param processPropertyPlaceHolders
+     * @param processPropertyPlaceHolders placeholders for property
      */
     public void setProcessPropertyPlaceHolders(boolean processPropertyPlaceHolders) {
         this.processPropertyPlaceHolders = processPropertyPlaceHolders;
