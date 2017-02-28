@@ -99,7 +99,7 @@ public class FirstCqlerTest {
         firstCqler.addTeamMember("Red Bull", "Kvyat", "Russian", "driver");
 
         List<Keyspace> keyspaces = firstCqler.showKeyspaces();
-        assertThat(keyspaces.size()).isGreaterThan(5);
+        assertThat(keyspaces.size()).isGreaterThanOrEqualTo(4);
         assertThat(keyspaces).contains(new Keyspace("firstcqler"));
     }
 

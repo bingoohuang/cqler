@@ -1,8 +1,8 @@
 package com.github.bingoohuang.cqler.impl;
 
+import lombok.SneakyThrows;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 public class CqlParser {
     static Pattern seqParamPlaceholder = Pattern.compile("#(\\d+?)#");
-
     static Pattern attrParamPlaceholder = Pattern.compile("#(\\S+?)#");
 
     static class CqlParserResult {
@@ -31,11 +30,10 @@ public class CqlParser {
         this.args = args;
     }
 
-    public CqlParserResult parseCql() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public CqlParserResult parseCql()  {
         if (cql.contains("##")) return parseAutoParams();
         if (seqParamPlaceholder.matcher(cql).find()) return parseSeqParams();
         return parseAttrParams();
-
     }
 
     private CqlParserResult parseSeqParams() {
@@ -59,7 +57,8 @@ public class CqlParser {
 
     }
 
-    private CqlParserResult parseAttrParams() throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    @SneakyThrows
+    private CqlParserResult parseAttrParams()  {
         Matcher matcher = attrParamPlaceholder.matcher(cql);
         List<Object> attrSeqs = new ArrayList<Object>();
 
@@ -81,6 +80,5 @@ public class CqlParser {
         String execSql = cql.replaceAll("##", "?");
         return new CqlParserResult(execSql, args);
     }
-
 }
 
